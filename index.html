@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Neonatología 2025 – Altagracia</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --accent: #2e86c1;
+    --correct: #1e8449;
+    --wrong: #c0392b;
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #d1d5db;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: var(--primary);
+    color: white;
+    padding: 20px 24px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+  header p { font-size: 0.85rem; opacity: 0.85; }
+  .progress-bar-wrap {
+    background: #ccc;
+    height: 6px;
+  }
+  .progress-bar {
+    background: var(--accent);
+    height: 6px;
+    transition: width 0.3s;
+  }
+  .container { max-width: 780px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* Topic nav */
+  .topic-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .topic-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+  }
+  .topic-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .topic-btn.done { border-color: var(--correct); color: var(--correct); }
+
+  /* Score bar */
+  .score-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    font-size: 0.9rem;
+  }
+  .score-bar span b { color: var(--accent); }
+
+  /* Question card */
+  .question-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border: 2px solid transparent;
+    transition: border 0.2s;
+  }
+  .question-card.answered-correct { border-color: var(--correct); }
+  .question-card.answered-wrong { border-color: var(--wrong); }
+
+  .question-meta {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .question-text {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.92rem;
+    text-align: left;
+    line-height: 1.4;
+    transition: all 0.15s;
+    color: var(--text);
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--accent); background: #eaf3fb; }
+  .option-btn .letter {
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 18px;
+  }
+  .option-btn.correct {
+    background: #d4efdf;
+    border-color: var(--correct);
+    color: var(--correct);
+    font-weight: 600;
+  }
+  .option-btn.wrong {
+    background: #fadbd8;
+    border-color: var(--wrong);
+    color: var(--wrong);
+  }
+  .option-btn:disabled { cursor: default; }
+
+  .explanation {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: #eaf3fb;
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    display: none;
+  }
+  .explanation.show { display: block; }
+
+  /* Final screen */
+  #final-screen {
+    display: none;
+    text-align: center;
+    background: white;
+    border-radius: 16px;
+    padding: 40px 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+  #final-screen h2 { font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; }
+  #final-screen .big-score { font-size: 3.5rem; font-weight: 800; color: var(--accent); margin: 16px 0; }
+  #final-screen p { color: var(--muted); margin-bottom: 20px; }
+  .topic-results { text-align: left; margin-top: 24px; }
+  .topic-result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+    background: #f8f9fa;
+  }
+  .topic-result-row .mini-bar-wrap {
+    width: 120px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .topic-result-row .mini-bar { height: 8px; border-radius: 10px; background: var(--accent); }
+
+  .btn-restart {
+    margin-top: 24px;
+    padding: 14px 32px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-restart:hover { background: var(--accent); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏥 Quiz Neonatología 2025 – Hospital Altagracia</h1>
+  <p>Concurso Subespecialidad de Neonatología · 120 preguntas · 12 temas</p>
+</header>
+<div class="progress-bar-wrap"><div class="progress-bar" id="pbar"></div></div>
+
+<div class="container">
+  <div class="score-bar">
+    <span>Pregunta <b id="q-current">1</b> / <b id="q-total">120</b></span>
+    <span>Correctas: <b id="score-count">0</b> | Incorrectas: <b id="wrong-count">0</b></span>
+  </div>
+
+  <div class="topic-nav" id="topic-nav"></div>
+
+  <div id="quiz-body"></div>
+
+  <div id="final-screen">
+    <h2>¡Simulacro completado!</h2>
+    <div class="big-score" id="final-pct">--%</div>
+    <p id="final-msg"></p>
+    <div class="topic-results" id="topic-results"></div>
+    <button class="btn-restart" onclick="restart()">🔄 Volver a empezar</button>
+  </div>
+</div>
+
+<script>
+const topics = [
+  "Recién Nacido Normal",
+  "Asistencia Inmediata al RN",
+  "Trastornos Metabólicos",
+  "Diabetes Gestacional / HMD",
+  "Valoración y Edad Gestacional",
+  "Prematuridad",
+  "Síndrome de Distrés Respiratorio",
+  "Restricción de Crecimiento Intrauterino",
+  "Recién Nacido Bajo Peso",
+  "Lactancia Materna",
+  "Sepsis Neonatal",
+  "Reanimación Neonatal"
+];
+
+const questions = [
+// ============================================================
+// TEMA 1: RECIÉN NACIDO NORMAL (10 preguntas)
+// ============================================================
+{
+  topic: 0,
+  q: "¿Cuál es la frecuencia cardíaca normal en un recién nacido a término en reposo?",
+  opts: ["60-80 lpm","100-160 lpm","170-200 lpm","80-100 lpm"],
+  ans: 1,
+  exp: "La FC normal del RN a término en reposo es 100-160 lpm. Valores <100 se consideran bradicardia neonatal."
+},
+{
+  topic: 0,
+  q: "¿Cuál es la temperatura axilar normal de un recién nacido?",
+  opts: ["35.0–36.0 °C","36.5–37.5 °C","37.5–38.5 °C","34.0–35.5 °C"],
+  ans: 1,
+  exp: "La temperatura axilar normal del RN es 36.5–37.5 °C. La hipotermia se define como <36.5 °C y la hipertermia como >37.5 °C."
+},
+{
+  topic: 0,
+  q: "El vérnix caseosa en el recién nacido normal cumple principalmente la función de:",
+  opts: ["Indicar madurez pulmonar","Proteger la piel del líquido amniótico","Estimular la producción de surfactante","Prevenir la sepsis por estreptococo grupo B"],
+  ans: 1,
+  exp: "El vérnix caseosa es una sustancia grasa que cubre la piel fetal y la protege de la maceración por el líquido amniótico. Tiene propiedades antimicrobianas y se recomienda no retirarlo inmediatamente al nacer."
+},
+{
+  topic: 0,
+  q: "La pérdida de peso fisiológica esperada en el recién nacido a término durante los primeros días de vida es:",
+  opts: ["1-3% del peso al nacer","5-10% del peso al nacer","12-15% del peso al nacer","15-20% del peso al nacer"],
+  ans: 1,
+  exp: "La pérdida fisiológica de peso es del 5-10% del peso al nacer en los primeros 3-5 días, recuperándose para el día 10-14. Pérdidas >10% requieren evaluación."
+},
+{
+  topic: 0,
+  q: "¿Cuál es la frecuencia respiratoria normal en el recién nacido?",
+  opts: ["10-20 rpm","20-30 rpm","40-60 rpm","70-90 rpm"],
+  ans: 2,
+  exp: "La FR normal del RN es 40-60 respiraciones por minuto. Taquipnea se define como FR >60 rpm sostenida."
+},
+{
+  topic: 0,
+  q: "El período de transición neonatal normal dura aproximadamente:",
+  opts: ["30 minutos","6-8 horas","24-48 horas","5-7 días"],
+  ans: 1,
+  exp: "El período de transición neonatal (adaptación cardiopulmonar) dura 6-8 horas. Durante este tiempo el RN pasa por fases de reactividad, sueño y segundo período reactivo."
+},
+{
+  topic: 0,
+  q: "¿Cuál es el signo de Moro y qué evalúa?",
+  opts: ["Extensión de miembros inferiores; evalúa tono muscular","Abducción y extensión de brazos seguida de flexión; evalúa integridad del SNC","Flexión plantar al estimular la palma; evalúa reflejos primitivos","Rotación de cabeza hacia el estímulo táctil; evalúa reflejo de búsqueda"],
+  ans: 1,
+  exp: "El reflejo de Moro consiste en extensión y abducción de los brazos seguida de su flexión ante un estímulo brusco. Evalúa la integridad del SNC y está presente hasta los 4-6 meses."
+},
+{
+  topic: 0,
+  q: "En el recién nacido normal a término, el primer meconio debe eliminarse dentro de las primeras:",
+  opts: ["6 horas","24-48 horas","72 horas","5 días"],
+  ans: 1,
+  exp: "El 95% de los RN a término elimina meconio en las primeras 24 horas y el 99% en las primeras 48 horas. Su ausencia obliga a descartar obstrucción intestinal o fibrosis quística."
+},
+{
+  topic: 0,
+  q: "La ictericia fisiológica neonatal en el RN a término aparece típicamente:",
+  opts: ["En las primeras 24 horas","Entre las 24-72 horas de vida","A los 7-10 días de vida","Después de las 2 semanas"],
+  ans: 1,
+  exp: "La ictericia fisiológica aparece después de las 24 horas, alcanza su pico alrededor del 3er-5to día y desaparece antes de los 14 días en el RN a término."
+},
+{
+  topic: 0,
+  q: "¿Cuánto mide y cuánto pesa un recién nacido normal a término?",
+  opts: ["Peso: 1500-2000 g; talla: 40-44 cm","Peso: 2500-4000 g; talla: 48-52 cm","Peso: 4000-4500 g; talla: 53-56 cm","Peso: 2000-2500 g; talla: 44-48 cm"],
+  ans: 1,
+  exp: "El RN a término normal pesa entre 2500-4000 g y mide 48-52 cm. PC 33-35 cm. Perímetro torácico 30-33 cm."
+},
+// ============================================================
+// TEMA 2: ASISTENCIA INMEDIATA AL RECIÉN NACIDO (10 preguntas)
+// ============================================================
+{
+  topic: 1,
+  q: "Inmediatamente al nacer, ¿cuál es la primera acción a realizar en la sala de partos según el programa de reanimación neonatal?",
+  opts: ["Pinzar el cordón umbilical inmediatamente","Evaluar: ¿A término? ¿Llora o respira? ¿Buen tono muscular?","Aspirar secreciones de boca y nariz","Administrar vitamina K"],
+  ans: 1,
+  exp: "Según el NRP/AAP, la primera acción es responder las 3 preguntas: ¿Es a término? ¿Tiene llanto o respiración? ¿Buen tono muscular? Si las 3 son sí, se procede a cuidados de rutina."
+},
+{
+  topic: 1,
+  q: "¿Cuál es la temperatura recomendada en la sala de partos para recibir al recién nacido?",
+  opts: ["20-22 °C","23-25 °C","25-28 °C","28-32 °C"],
+  ans: 1,
+  exp: "La sala de partos debe mantenerse a 23-25 °C para minimizar la pérdida de calor del RN. Para prematuros <28 sem se recomienda temperatura ambiental de 26 °C o más."
+},
+{
+  topic: 1,
+  q: "El pinzamiento tardío del cordón umbilical en RN a término se recomienda a:",
+  opts: ["30-60 segundos después del nacimiento","Al menos 1 minuto (preferiblemente 1-3 minutos)","5-10 minutos después del nacimiento","Después de que el cordón deje de latir completamente"],
+  ans: 1,
+  exp: "La OMS y AAP recomiendan el pinzamiento tardío del cordón a 1-3 minutos en RN a término y pretérmino vigoroso, lo que aumenta la hemoglobina, el hierro y reduce la anemia neonatal."
+},
+{
+  topic: 1,
+  q: "Para la profilaxis ocular del recién nacido contra Neisseria gonorrhoeae, el agente de elección según las guías actuales es:",
+  opts: ["Nitrato de plata al 1%","Eritromicina en ungüento al 0.5%","Ciprofloxacino en gotas al 0.3%","Gentamicina en ungüento al 0.3%"],
+  ans: 1,
+  exp: "La eritromicina en ungüento oftálmico al 0.5% es el agente recomendado para profilaxis de oftalmía neonatal gonocócica. El nitrato de plata fue retirado por sus efectos irritantes."
+},
+{
+  topic: 1,
+  q: "La vitamina K1 (fitomenadiona) se administra al recién nacido principalmente para prevenir:",
+  opts: ["La hipoglucemia neonatal","La enfermedad hemorrágica del recién nacido","La sepsis neonatal temprana","La anemia fisiológica"],
+  ans: 1,
+  exp: "La vitamina K1 (0.5-1 mg IM) previene la Enfermedad Hemorrágica del Recién Nacido (deficiencia de vitamina K), que puede causar sangrado intracraneal grave entre los 2-12 semanas de vida."
+},
+{
+  topic: 1,
+  q: "La vacuna de Hepatitis B debe administrarse al recién nacido idealmente:",
+  opts: ["Al mes de vida","A los 2 meses","En las primeras 12-24 horas de vida","A los 6 meses"],
+  ans: 2,
+  exp: "La primera dosis de vacuna HBV debe aplicarse en las primeras 12-24 horas de vida en todos los RN. En hijos de madres HBsAg positivo debe administrarse en las primeras 12 horas junto con inmunoglobulina anti-HBV."
+},
+{
+  topic: 1,
+  q: "¿Qué establece la prueba del tamiz neonatal (Newborn Screening)?",
+  opts: ["Se realiza únicamente si hay antecedentes familiares de errores metabólicos","Se toma muestra de sangre del talón entre las 24-72 horas de vida","Debe realizarse antes de las 12 horas de vida para mayor sensibilidad","Solo se realiza en recién nacidos prematuros"],
+  ans: 1,
+  exp: "El tamiz neonatal se realiza entre 24-72 horas de vida (idealmente después de 24h de alimentación proteica). Detecta hipotiroidismo congénito, PKU, hiperplasia suprarrenal congénita, entre otros."
+},
+{
+  topic: 1,
+  q: "En la atención inmediata del recién nacido, el secado vigoroso sirve principalmente para:",
+  opts: ["Evaluar el reflejo de Moro","Proporcionar estimulación táctil y prevenir hipotermia","Eliminar el vérnix caseosa","Estimular el reflejo de succión"],
+  ans: 1,
+  exp: "El secado vigoroso previene la hipotermia (principal causa de mortalidad neonatal prevenible) y sirve como estimulación táctil para iniciar la respiración. Se realiza en los primeros 30 segundos."
+},
+{
+  topic: 1,
+  q: "¿Cuál es la temperatura del ambiente ideal para bañar a un recién nacido a término en las primeras horas de vida?",
+  opts: ["Se recomienda bañar inmediatamente para prevenir hipotermia","El baño debe diferirse hasta que la temperatura sea ≥36.5°C y estabilidad hemodinámica","El baño de rutina se realiza a las 2 horas independientemente de la temperatura","El baño se realiza siempre en la sala de partos"],
+  ans: 1,
+  exp: "La OMS recomienda diferir el primer baño hasta que el RN tenga temperatura estable ≥36.5°C (mínimo 6 horas). El baño temprano aumenta el riesgo de hipotermia e hipoglucemia."
+},
+{
+  topic: 1,
+  q: "El contacto piel a piel (Método Canguro) inmediatamente después del parto en un RN a término vigoroso:",
+  opts: ["Está contraindicado por riesgo de hipotermia","Promueve lactancia, estabilidad térmica y vínculo materno-neonatal","Se reserva para prematuros menores de 34 semanas","Debe diferirse hasta completar todos los procedimientos de rutina"],
+  ans: 1,
+  exp: "El contacto piel a piel inmediato promueve la lactancia materna, estabilidad térmica, cardiorrespiratoria y glucémica, y fortalece el vínculo. Está recomendado por OMS/AAP para todos los RN estables."
+},
+// ============================================================
+// TEMA 3: TRASTORNOS METABÓLICOS (10 preguntas)
+// ============================================================
+{
+  topic: 2,
+  q: "Se define hipoglucemia neonatal sintomática cuando la glucosa plasmática es menor de:",
+  opts: ["<30 mg/dL en cualquier RN","<45 mg/dL en las primeras 24 horas en RN de riesgo","<60 mg/dL en todo recién nacido","<50 mg/dL solo en prematuros"],
+  ans: 1,
+  exp: "Aunque el umbral exacto es debatido, la AAP y NeoFax definen hipoglucemia operacional en <45 mg/dL en las primeras 24 h en RN de riesgo. El objetivo es mantener glucosa ≥45 mg/dL en las primeras 48h y ≥50 mg/dL después."
+},
+{
+  topic: 2,
+  q: "¿Cuáles son los signos clínicos de hipoglucemia neonatal?",
+  opts: ["Ictericia, hepatomegalia y coluria","Temblores, cianosis, apnea, hipotonía, convulsiones y letargia","Fiebre, distensión abdominal y sangre en heces","Petequias, hepatoesplenomegalia y trombocitopenia"],
+  ans: 1,
+  exp: "Los signos de hipoglucemia incluyen temblores/jitteriness, cianosis, apneas, hipotonía, convulsiones y letargia. Son inespecíficos, por lo que se debe confirmar con glucometría."
+},
+{
+  topic: 2,
+  q: "La hipocalcemia neonatal precoz (primeras 72 horas) se define como calcio total sérico menor de:",
+  opts: ["<7 mg/dL en RN a término","<8 mg/dL en RN prematuro","A: <7 mg/dL a término / <6.5 mg/dL en prematuro","<5 mg/dL en cualquier RN"],
+  ans: 2,
+  exp: "Hipocalcemia: Ca total <7 mg/dL (o Ca iónico <4 mg/dL) en RN a término; <6.5-7 mg/dL en prematuros. Factores de riesgo: prematurez, asfixia, hijo de madre diabética, hipomagnesemia."
+},
+{
+  topic: 2,
+  q: "El recién nacido hijo de madre con hiperparatiroidismo tiene riesgo de presentar:",
+  opts: ["Hipercalcemia neonatal","Hipocalcemia neonatal por supresión de PTH fetal","Hiperfosfatemia e hipercalcemia","Hipomagnesemia grave"],
+  ans: 1,
+  exp: "La hipercalcemia materna (hiperparatiroidismo) suprime la PTH fetal y estimula calcitonina, resultando en hipocalcemia neonatal. Es una causa clásica de hipocalcemia tardía."
+},
+{
+  topic: 2,
+  q: "¿Cuál es el tratamiento de emergencia para convulsiones por hipocalcemia neonatal?",
+  opts: ["Gluconato de calcio al 10% IV 200 mg/kg en bolo rápido","Gluconato de calcio al 10% IV 100-200 mg/kg (1-2 mL/kg) lento en 10 minutos con monitoreo cardíaco","Cloruro de calcio IV 0.5 mL/kg en bolo","Carbonato de calcio oral 500 mg cada 8h"],
+  ans: 1,
+  exp: "Para hipocalcemia sintomática (convulsiones): Gluconato de calcio 10%, 100-200 mg/kg IV lento (10 min) con monitoreo ECG. La administración rápida puede causar bradicardia grave. Evitar extravasación (necrosis tisular)."
+},
+{
+  topic: 2,
+  q: "El hipotiroidismo congénito, de no tratarse oportunamente, produce principalmente:",
+  opts: ["Gigantismo cerebral","Retraso mental irreversible (cretinismo)","Pubertad precoz","Diabetes insípida nefrogénica"],
+  ans: 1,
+  exp: "El hipotiroidismo congénito no tratado causa retraso mental irreversible (cretinismo). Por eso el tamiz neonatal es crítico: el tratamiento antes de las 4 semanas previene el daño neurológico."
+},
+{
+  topic: 2,
+  q: "La enfermedad de orina con olor a jarabe de maple (MSUD) se debe a déficit de:",
+  opts: ["Fenilalanina hidroxilasa","Deshidrogenasa de cetoácidos de cadena ramificada (BCKAD)","Galactosa-1-fosfato uridiltransferasa","Biotinidasa"],
+  ans: 1,
+  exp: "MSUD (Maple Syrup Urine Disease) se debe al déficit de BCKAD, causando acumulación de leucina, isoleucina y valina. Se presenta con encefalopatía, hipotonía y orina con olor dulce característico."
+},
+{
+  topic: 2,
+  q: "La fenilcetonuria clásica (PKU) se caracteriza por déficit de:",
+  opts: ["Tirosina hidroxilasa","Fenilalanina hidroxilasa (PAH)","Homogentisato oxidasa","Alcantonuria dioxigenasa"],
+  ans: 1,
+  exp: "La PKU clásica se debe a déficit de fenilalanina hidroxilasa, acumulando fenilalanina. Sin tratamiento causa retraso mental profundo. El tamiz detecta hiperfenilalaninemia y el tratamiento es dieta restringida en Phe."
+},
+{
+  topic: 2,
+  q: "La galactosemia clásica se presenta en el neonato con:",
+  opts: ["Hipoglucemia, convulsiones y olor a azúcar quemado","Ictericia, hepatomegalia, cataratas y sepsis por E. coli en el neonato alimentado con lactosa","Hipotonía, macroglosia y facies característica","Vómitos biliosos y obstrucción intestinal"],
+  ans: 1,
+  exp: "La galactosemia clásica (déficit de GALT) se presenta con ictericia, hepatomegalia, cataratas, hipoglucemia y sepsis por E. coli. El tratamiento es eliminar galactosa y lactosa de la dieta."
+},
+{
+  topic: 2,
+  q: "¿Cuál es el tratamiento inicial preferido para la hipoglucemia neonatal asintomática leve (40-45 mg/dL)?",
+  opts: ["Bolo IV inmediato de dextrosa al 10%","Alimentación oral/enteral precoz (pecho o fórmula) y reevaluar en 30-60 minutos","Ayuno y observación","Administración de glucagón IM"],
+  ans: 1,
+  exp: "En hipoglucemia asintomática leve, la alimentación oral/enteral es el primer paso. Si no responde o es <40 mg/dL sintomática: bolo IV de dextrosa al 10% a 2 mL/kg seguido de infusión continua."
+},
+// ============================================================
+// TEMA 4: DIABETES GESTACIONAL / HIJO DE MADRE DIABÉTICA (10)
+// ============================================================
+{
+  topic: 3,
+  q: "El principal mecanismo que explica la macrosomía en el hijo de madre diabética (HMD) es:",
+  opts: ["Exceso de hormona del crecimiento fetal","Hiperinsulinismo fetal secundario a hiperglucemia materna","Aumento de IGF-2 por mutación genética","Exceso de leptina materna"],
+  ans: 1,
+  exp: "La hiperglucemia materna causa hiperglucemia fetal → hiperinsulinismo fetal → anabolismo → macrosomía. La teoría de Pedersen explica esta secuencia fisiopatológica fundamental."
+},
+{
+  topic: 3,
+  q: "¿Cuál es la complicación metabólica más frecuente e inmediata en el hijo de madre diabética?",
+  opts: ["Hiperglucemia neonatal","Hipoglucemia neonatal (dentro de 1-4 horas del nacimiento)","Hipercalcemia","Hipernatremia"],
+  ans: 1,
+  exp: "La hipoglucemia es la complicación metabólica más frecuente del HMD. Ocurre 1-4 horas tras el nacimiento por hiperinsulinismo persistente, ya que el estímulo glucosado materno desaparece al nacer."
+},
+{
+  topic: 3,
+  q: "¿Cuál malformación cardíaca congénita es más frecuente en el hijo de madre diabética?",
+  opts: ["Comunicación interventricular (CIV)","Miocardiopatía hipertrófica (especialmente del septo)","Transposición de grandes vasos","Coartación de aorta"],
+  ans: 1,
+  exp: "La miocardiopatía hipertrófica (especialmente hipertrofia septal asimétrica) es la cardiopatía más característica del HMD. Puede causar obstrucción del tracto de salida del VD o VI y resuelve espontáneamente en semanas."
+},
+{
+  topic: 3,
+  q: "La hipocalcemia en el hijo de madre diabética se debe principalmente a:",
+  opts: ["Déficit de aporte de calcio en la dieta materna","Hipomagnesemia materna → hipomagnesemia fetal → supresión de PTH neonatal","Exceso de calcitonina fetal","Insuficiencia renal neonatal"],
+  ans: 1,
+  exp: "La hipomagnesemia materna en la DM produce hipomagnesemia fetal/neonatal, que suprime la secreción de PTH, resultando en hipocalcemia. La hipocalcemia del HMD es frecuente en el 1er-3er día."
+},
+{
+  topic: 3,
+  q: "El síndrome de regresión caudal (agenesia sacra) es una malformación asociada específicamente a:",
+  opts: ["Diabetes mellitus tipo 1 pregestacional","Cualquier tipo de diabetes mellitus materna","Hipotiroidismo materno","Lupus eritematoso sistémico materno"],
+  ans: 1,
+  exp: "El síndrome de regresión caudal (hipoplasia/agenesia sacra y columna lumbar) es una malformación casi patognomónica de la diabetes materna, aunque rara. Ocurre con mayor frecuencia en DM pregestacional."
+},
+{
+  topic: 3,
+  q: "La policitemia en el hijo de madre diabética se debe a:",
+  opts: ["Hipercoagulabilidad materna","Hipoxia fetal crónica → aumento de eritropoyetina fetal","Transfusión feto-materna","Déficit de factor XIII"],
+  ans: 1,
+  exp: "La hipoxia fetal relativa por hiperglucemia/hiperinsulinismo estimula la eritropoyetina fetal, aumentando la masa eritrocitaria. Policitemia (Hto >65%) puede causar hiperviscosidad, trombosis y SDR."
+},
+{
+  topic: 3,
+  q: "¿Cuál es el peso fetal considerado macrosomía en el HMD?",
+  opts: [">3,000 g","≥4,000 g (o percentil 90 para EG)","≥3,500 g","≥5,000 g"],
+  ans: 1,
+  exp: "Macrosomía se define como peso ≥4,000 g o >percentil 90 para edad gestacional (grande para la edad gestacional, GEG). En HMD la macrosomía es visceral y subcutánea (no proporcionada)."
+},
+{
+  topic: 3,
+  q: "El síndrome de dificultad respiratoria es más frecuente en el HMD porque:",
+  opts: ["Tienen pulmones con más surfactante pero funcionalmente inmaduro","El hiperinsulinismo interfiere con la maduración del surfactante pulmonar (inhibe lecitina)","Tienen malformaciones traqueales asociadas","Presentan hipertensión pulmonar primaria en el 90% de los casos"],
+  ans: 1,
+  exp: "La insulina antagoniza la acción de glucocorticoides en la maduración pulmonar, retrasando la síntesis de fosfatidilcolina (lecitina) del surfactante. Por eso el HMD tiene mayor riesgo de SDR incluso a término."
+},
+{
+  topic: 3,
+  q: "El control glucémico en la madre diabética durante el embarazo es clave para reducir el riesgo de:",
+  opts: ["Solo malformaciones cardíacas","Macrosomía, malformaciones congénitas, pérdida fetal, hipoglucemia neonatal y muerte perinatal","Únicamente hipoglucemia neonatal","Solo el síndrome de dificultad respiratoria"],
+  ans: 1,
+  exp: "Un control glucémico óptimo (HbA1c <6.5% periconcepcional) reduce drásticamente el riesgo de malformaciones congénitas (en el 1er trimestre), macrosomía, muerte fetal y complicaciones neonatales."
+},
+{
+  topic: 3,
+  q: "El monitoreo de glucemia en el HMD debe iniciarse:",
+  opts: ["Al primer signo clínico de hipoglucemia","En la primera hora de vida y luego cada 1-3 horas según protocolo","Solo si el RN pesa >4 kg","A las 6 horas de vida"],
+  ans: 1,
+  exp: "En el HMD el monitoreo de glucemia debe iniciarse en la 1a hora de vida y cada 1-3 horas en las primeras 12-24 horas. La hipoglucemia ocurre más frecuente en las 1-4 horas postnatales."
+},
+// ============================================================
+// TEMA 5: VALORACIÓN Y CLASIFICACIÓN DE LA EDAD GESTACIONAL (10)
+// ============================================================
+{
+  topic: 4,
+  q: "¿Qué instrumento se usa actualmente como el más confiable para la evaluación de la madurez neuromuscular y física del recién nacido?",
+  opts: ["Escala de Usher","Test de Capurro","Escala de Ballard modificada (New Ballard Score)","Test de Dubowitz original"],
+  ans: 2,
+  exp: "La Escala de Ballard Modificada (New Ballard Score) evalúa 6 criterios neuromusculares y 6 físicos. Es la más usada y validada. Su rango es de -10 a 50 puntos, correspondiendo a 20-44 semanas de gestación."
+},
+{
+  topic: 4,
+  q: "En la escala de Ballard, la postura del recién nacido en reposo en decúbito supino se evalúa con puntuación de 4 cuando:",
+  opts: ["Las extremidades están completamente extendidas","Los brazos están flexionados y las piernas extendidas","El RN presenta flexión completa de brazos y piernas","Solo los miembros inferiores presentan hiperflexión"],
+  ans: 2,
+  exp: "Postura 4 en Ballard = flexión completa de las 4 extremidades, típica de RN a término o postérmino. La progresión va de extensión completa (0) a hiperfexión (4), correlacionando con madurez."
+},
+{
+  topic: 4,
+  q: "Un recién nacido con edad gestacional entre 34 0/7 y 36 6/7 semanas se clasifica como:",
+  opts: ["Prematuro extremo","Prematuro moderado","Prematuro tardío (late preterm)","A término temprano"],
+  ans: 2,
+  exp: "Prematuro tardío (late preterm): 34 0/7 - 36 6/7 semanas. Son el grupo más numeroso de prematuros y tienen mayor riesgo de hipoglucemia, hipotermia, dificultad respiratoria e ictericia que los RN a término."
+},
+{
+  topic: 4,
+  q: "Según la clasificación por peso al nacer, un recién nacido de 900 gramos se clasifica como:",
+  opts: ["Bajo peso al nacer (BPN)","Muy bajo peso al nacer (MBPN)","Extremadamente bajo peso al nacer (EBPN)","Microprematuro"],
+  ans: 1,
+  exp: "BPN: <2,500 g; MBPN: <1,500 g; EBPN: <1,000 g. Un RN de 900 g es MBPN. Los de <750-800 g se denominan \"microprematuros\"."
+},
+{
+  topic: 4,
+  q: "Un recién nacido con peso en el percentil 8 para su edad gestacional se clasifica como:",
+  opts: ["Adecuado para la edad gestacional (AEG)","Pequeño para la edad gestacional (PEG)","Grande para la edad gestacional (GEG)","Normal para la edad gestacional"],
+  ans: 1,
+  exp: "PEG: peso <percentil 10 para edad gestacional. AEG: percentil 10-90. GEG: >percentil 90. El percentil 8 corresponde a PEG, que puede indicar RCIU."
+},
+{
+  topic: 4,
+  q: "El ángulo de ventana cuadrada en la escala de Ballard evalúa:",
+  opts: ["La madurez del cartílago de la oreja","La resistencia a la flexión de la muñeca","La madurez de la piel","El desarrollo del escróto o labios mayores"],
+  ans: 1,
+  exp: "El ángulo de ventana cuadrada (wrist flexibility) mide la resistencia a la dorsiflexión de la muñeca. A mayor madurez, menor ángulo: >90° (muy inmaduro) → 0° (muy maduro)."
+},
+{
+  topic: 4,
+  q: "¿Qué característica de la piel en la escala de Ballard indica un RN de término tardío o postérmino?",
+  opts: ["Piel gelatinosa y roja transparente","Piel lisa y rosada con venas visibles","Piel gruesa y agrietada, con descamación y sin venas visibles","Piel con vérnix abundante y lanugo denso"],
+  ans: 2,
+  exp: "Piel gruesa, agrietada, con descamación superficial y sin venas visibles es característica de RN a término tardío o postérmino (puntuación 4-5 en Ballard). La piel se torna pergaminosa conforme aumenta la EG."
+},
+{
+  topic: 4,
+  q: "La fecha de la última menstruación (FUM) para calcular la edad gestacional es confiable cuando:",
+  opts: ["La madre tiene ciclos irregulares","Se combina con ultrasonografía del primer trimestre (antes de 14 semanas)","La madre toma anticonceptivos orales","Siempre es el método de referencia estándar sin excepciones"],
+  ans: 1,
+  exp: "La FUM es el método clásico, pero puede ser imprecisa en ciclos irregulares o anticonceptivos. La US del 1er trimestre (<14 sem) tiene un error de ±5-7 días y es actualmente el mejor método de datación gestacional."
+},
+{
+  topic: 4,
+  q: "Un RN de 38 semanas y 3 días de gestación se clasifica como:",
+  opts: ["Prematuro tardío","A término temprano","A término completo","A término tardío"],
+  ans: 1,
+  exp: "Clasificación ACOG/AAP: Prematuro tardío: 34-36 6/7; A término temprano: 37 0/7-38 6/7; A término completo: 39 0/7-40 6/7; A término tardío: 41 0/7-41 6/7; Postérmino: ≥42 semanas."
+},
+{
+  topic: 4,
+  q: "En la escala de Ballard, la evaluación del pabellón auricular evalúa:",
+  opts: ["El color del lóbulo","La curvatura del borde y firmeza del cartílago","El tamaño del canal auditivo","La distancia tragus-antitragus"],
+  ans: 1,
+  exp: "En Ballard, la oreja se evalúa por la curvatura del hélix y la firmeza del cartílago. En prematuros el pabellón está plano y el cartílago es blando; a mayor EG, mayor curvatura y firmeza."
+},
+// ============================================================
+// TEMA 6: PREMATURIDAD (10 preguntas)
+// ============================================================
+{
+  topic: 5,
+  q: "¿Cuál es la principal causa de mortalidad neonatal en prematuros extremos (<28 semanas)?",
+  opts: ["Sepsis neonatal nosocomial","Síndrome de dificultad respiratoria (membrana hialina)","Enterocolitis necrotizante","Hemorragia intraventricular grado IV"],
+  ans: 1,
+  exp: "El SDR/Membrana Hialina por déficit de surfactante es la principal causa de mortalidad y morbilidad en prematuros extremos. Su incidencia aumenta a menor EG: ~50% a 26-28 sem vs <5% a 34 sem."
+},
+{
+  topic: 5,
+  q: "El surfactante pulmonar exógeno se debe administrar por vía:",
+  opts: ["Intravenosa en bolo","Intratraqueal a través del tubo endotraqueal","Inhalada por nebulización","Intramuscular en los músculos intercostales"],
+  ans: 1,
+  exp: "El surfactante exógeno se administra intratraquealmente a través del TET, directamente al árbol traqueobronquial. La dosis estándar de beractant es 100 mg/kg (4 mL/kg) o poractant alfa 100-200 mg/kg."
+},
+{
+  topic: 5,
+  q: "¿Qué corticoide antenatal se usa para inducir madurez pulmonar fetal y cuál es la dosis estándar?",
+  opts: ["Dexametasona 6 mg IM cada 12h × 4 dosis","Betametasona 12 mg IM cada 24h × 2 dosis","Prednisona 40 mg VO × 7 días","Hidrocortisona 100 mg IV cada 8h × 3 días"],
+  ans: 1,
+  exp: "Betametasona 12 mg IM cada 24 horas por 2 dosis (o dexametasona 6 mg cada 12h × 4 dosis) es el estándar para maduración pulmonar fetal entre 24-34 semanas. Reduce SDR, HIV y mortalidad neonatal."
+},
+{
+  topic: 5,
+  q: "La retinopatía de la prematuridad (ROP) está relacionada principalmente con:",
+  opts: ["Infección por CMV intraútero","Exposición a concentraciones elevadas de oxígeno y prematurez extrema","Déficit de vitamina A","Hipotensión arterial neonatal grave"],
+  ans: 1,
+  exp: "La ROP se produce por vascularización retiniana anormal en prematuros, especialmente <32 semanas o <1500g. El oxígeno suplementario en exceso (SpO2 >95% en prematuros) es el principal factor de riesgo modificable."
+},
+{
+  topic: 5,
+  q: "La enterocolitis necrotizante (ECN) tiene mayor incidencia en recién nacidos:",
+  opts: ["A término alimentados con fórmula artesanal","Prematuros de muy bajo peso (<1500g) especialmente <32 semanas","Pos-término con macrosomía","A término con onfalocele"],
+  ans: 1,
+  exp: "ECN afecta principalmente a prematuros MBPN (<1500g). Incidencia: 5-10% en prematuros <1500g. La lactancia materna es el principal factor protector demostrado."
+},
+{
+  topic: 5,
+  q: "La hemorragia intraventricular (HIV) en el prematuro ocurre principalmente en:",
+  opts: ["El parénquima cerebeloso","La matriz germinal subependimaria periventricular","El espacio subdural","Las meninges cerebrales"],
+  ans: 1,
+  exp: "La HIV surge de la matriz germinal subependimaria, una zona altamente vascularizada presente hasta las 34-36 semanas. Es más frecuente en prematuros <32 sem y en las primeras 72 horas de vida."
+},
+{
+  topic: 5,
+  q: "¿Cuál es el principal factor de riesgo postnatal para la displasia broncopulmonar (DBP)?",
+  opts: ["Hipoglucemia neonatal no tratada","Ventilación mecánica prolongada y toxicidad por oxígeno","Infección por VRS en las primeras semanas de vida","Nutrición parenteral total >14 días"],
+  ans: 1,
+  exp: "DBP se define como necesidad de O2 suplementario a las 36 semanas de EPC. Los factores principales son prematurez, toxicidad del O2, barotrauma/volutrauma por VM, e inflamación pulmonar."
+},
+{
+  topic: 5,
+  q: "La persistencia del conducto arterioso (PCA) sintomática en el prematuro se manifiesta típicamente con:",
+  opts: ["Cianosis periférica y apneas aisladas","Soplo sistólico en foco pulmonar, pulsos saltones, apneas y deterioro respiratorio","Estertores pulmonares bilaterales sin soplo","Hipertensión arterial severa"],
+  ans: 1,
+  exp: "La PCA sintomática en prematuros: soplo sistólico o continuo en borde esternal izquierdo, pulsos saltones (presión de pulso amplia), precordio hiperdinámico, apneas y empeoramiento de la función respiratoria."
+},
+{
+  topic: 5,
+  q: "El límite de viabilidad en neonatología actualmente se considera a las:",
+  opts: ["20-22 semanas","22-23 semanas con soporte activo según contexto","25-26 semanas como mínimo absoluto","28 semanas en países en desarrollo"],
+  ans: 1,
+  exp: "La zona gris de viabilidad es 22-23 semanas. A 22 semanas la supervivencia es ~5-15% con secuelas graves; a 23 semanas mejora a ~30-40%. La decisión es individualizada y según capacidad del centro."
+},
+{
+  topic: 5,
+  q: "¿Cuál es la estrategia respiratoria de primera línea en el prematuro con SDR moderado sin necesidad de intubación?",
+  opts: ["Oxigenoterapia por cánula nasal simple","CPAP nasal (presión continua positiva en la vía aérea)","Ventilación mecánica convencional","Ventilación de alta frecuencia oscilatoria (VAFO)"],
+  ans: 1,
+  exp: "El CPAP nasal es el soporte respiratorio de primera línea en prematuros con SDR moderado (INSURE o LISA/MIST). Reduce la necesidad de intubación, el tiempo de VM y la incidencia de DBP."
+},
+// ============================================================
+// TEMA 7: SÍNDROME DE DISTRÉS RESPIRATORIO (10 preguntas)
+// ============================================================
+{
+  topic: 6,
+  q: "La causa principal del Síndrome de Distrés Respiratorio Neonatal (SDR) o Enfermedad de Membrana Hialina es:",
+  opts: ["Inmadurez del parénquima pulmonar con pulmones sólidos","Déficit de surfactante pulmonar por inmadurez de neumocitos tipo II","Obstrucción de la vía aérea superior por meconio","Hipertensión arterial pulmonar primaria"],
+  ans: 1,
+  exp: "El SDR/EMH se debe al déficit de surfactante en neumocitos tipo II inmaduros. El surfactante (principalmente fosfatidilcolina/lecitina) reduce la tensión superficial alveolar y previene el colapso alveolar."
+},
+{
+  topic: 6,
+  q: "El hallazgo radiológico característico de la Enfermedad de Membrana Hialina es:",
+  opts: ["Hiperinsuflación bilateral con aplanamiento diafragmático","Patrón reticulogranular difuso (vidrio esmerilado) con broncograma aéreo","Consolidación lobar con derrame pleural","Atelectasias lobares unilaterales"],
+  ans: 1,
+  exp: "Rx de EMH: patrón reticulogranular bilateral (aspecto de 'vidrio esmerilado') con broncograma aéreo prominente. En casos graves el campo pulmonar se opacifica totalmente ('pulmón blanco')."
+},
+{
+  topic: 6,
+  q: "La taquipnea transitoria del recién nacido (TTRN) se diferencia del SDR principalmente en que:",
+  opts: ["La TTRN ocurre exclusivamente en prematuros y el SDR en términos","La TTRN es por retención de líquido pulmonar fetal, ocurre en RN a término o tardíos y mejora en 24-72 horas","La TTRN requiere siempre surfactante exógeno","La TTRN presenta siempre opacidades lobares en Rx"],
+  ans: 1,
+  exp: "TTRN: reabsorción tardía del líquido pulmonar fetal. Ocurre en RN a término/tardíos, especialmente por cesárea sin trabajo de parto. Rx: trama vascular prominente, líquido en cisuras. Resuelve en 24-72h."
+},
+{
+  topic: 6,
+  q: "El síndrome de aspiración de meconio (SAM) grave se asocia con:",
+  opts: ["Prematuridad extrema <28 semanas","Hipoxia perinatal en RN a término/postérmino con líquido amniótico meconial espeso","Infección por Listeria monocytogenes","Déficit de glucosa-6-fosfato deshidrogenasa"],
+  ans: 1,
+  exp: "SAM: aspiración de meconio intraútero/intraparto en RN a término/postérmino con hipoxia. El meconio espeso causa obstrucción de vía aérea, inflamación química y HPPN. Es la causa más frecuente de HPPN."
+},
+{
+  topic: 6,
+  q: "La escala de Silverman-Anderson evalúa:",
+  opts: ["La saturación de oxígeno y la PCO2","El grado de dificultad respiratoria neonatal mediante 5 parámetros clínicos","La madurez pulmonar por relación L/E en líquido amniótico","El grado de hiperbilirrubinemia por zonas de Kramer"],
+  ans: 1,
+  exp: "Silverman-Anderson evalúa: 1) tiraje intercostal, 2) retracción xifoidea, 3) aleteo nasal, 4) disociación toraco-abdominal, 5) quejido espiratorio. 0 = sin dificultad; 10 = dificultad máxima."
+},
+{
+  topic: 6,
+  q: "La hipertensión pulmonar persistente del recién nacido (HPPN) se manifiesta con:",
+  opts: ["Hiperbilirrubinemia indirecta y plaquetopenia","Cianosis refractaria desproporcionada a los hallazgos pulmonares con diferencia de SpO2 pre/post-ductal >5-10%","Convulsiones y fontanela tensa","Edema generalizado e hipoproteinemia"],
+  ans: 1,
+  exp: "HPPN: cortocircuito D→I a través del FO y/o CA por resistencias pulmonares elevadas. Cianosis grave refractaria al O2. Gradiente SpO2 preductal (mano derecha) vs postductal (pie) >5-10% es diagnóstico."
+},
+{
+  topic: 6,
+  q: "¿Cuál es el tratamiento médico de primera línea para la HPPN?",
+  opts: ["Sildenafil oral","Óxido nítrico inhalado (ONi) a 20 ppm","Prostaglandina E1 IV","Bosentán IV"],
+  ans: 1,
+  exp: "El óxido nítrico inhalado (iNO) a 20 ppm es el vasodilatador pulmonar selectivo de elección en HPPN. Actúa en el músculo liso vascular pulmonar sin efecto sistémico. Reduce la necesidad de ECMO."
+},
+{
+  topic: 6,
+  q: "¿Cuándo está indicada la administración de surfactante de rescate en el SDR neonatal?",
+  opts: ["Solo si la saturación baja <85% mantenida","Cuando la FiO2 >0.30-0.40 con CPAP o se requiere intubación con diagnóstico de SDR","Siempre que haya quejido espiratorio","Solo en prematuros <28 semanas"],
+  ans: 1,
+  exp: "Surfactante de rescate está indicado cuando FiO2 >0.30-0.40 en CPAP o cuando el RN requiere intubación. La terapia con surfactante redujo la mortalidad por SDR en >50%. Betactant, poractant y calfactant son los disponibles."
+},
+{
+  topic: 6,
+  q: "La relación lecitina/esfingomielina (L/E) en líquido amniótico para determinar madurez pulmonar fetal indica madurez cuando es:",
+  opts: ["L/E >1.0","L/E >2.0","L/E >3.5","L/E >1.5"],
+  ans: 1,
+  exp: "L/E >2.0 en líquido amniótico indica madurez pulmonar fetal (Clements). Fosfatidilglicerol positivo es otro marcador de madurez. A las 35 semanas la mayoría tienen L/E >2."
+},
+{
+  topic: 6,
+  q: "El neumotórax a tensión como complicación del SDR con VM se presenta con:",
+  opts: ["Bradicardia gradual y aumento de bilirrubinas","Deterioro súbito, desaturación, bradicardia, asimetría torácica y desviación traqueal","Fiebre y leucocitosis","Hipertensión arterial con taquicardia"],
+  ans: 1,
+  exp: "Neumotórax a tensión: deterioro súbito, FC↓, SpO2↓, asimetría torácica, murmullo vesicular disminuido unilateral, desviación mediastinal. Emergencia: descompresión con aguja en 2do EIC, línea medioclavicular."
+},
+// ============================================================
+// TEMA 8: RESTRICCIÓN DE CRECIMIENTO INTRAUTERINO (10)
+// ============================================================
+{
+  topic: 7,
+  q: "Se define RCIU como peso fetal estimado o peso al nacer por debajo del:",
+  opts: ["Percentil 3 para edad gestacional","Percentil 5 para edad gestacional","Percentil 10 para edad gestacional","Percentil 15 para edad gestacional"],
+  ans: 2,
+  exp: "RCIU (también llamado PEG si al nacer): peso <percentil 10 para EG en curvas poblacionales estandarizadas. Algunos expertos usan <percentil 3 para definir RCIU severo."
+},
+{
+  topic: 7,
+  q: "La causa materna más frecuente de RCIU en países en desarrollo es:",
+  opts: ["Lupus eritematoso sistémico","Desnutrición materna e hipertensión arterial/preeclampsia","Trombofilia hereditaria","Cardiopatía congénita materna"],
+  ans: 1,
+  exp: "En países en desarrollo, la desnutrición materna y las trastornos hipertensivos del embarazo (preeclampsia, HTA crónica) son las principales causas de RCIU. En países desarrollados predomina la insuficiencia placentaria."
+},
+{
+  topic: 7,
+  q: "¿Cuál es el parámetro Doppler más útil para la vigilancia del bienestar fetal en RCIU severo?",
+  opts: ["Índice de pulsatilidad de la arteria uterina","Flujo diastólico ausente o reverso en arteria umbilical","Índice cerebro-placentario","Doppler de vena umbilical"],
+  ans: 1,
+  exp: "El Doppler de arteria umbilical con flujo diastólico final ausente (DFAD) o reverso (DFAR) indica resistencia placentaria extrema y es el marcador más crítico de compromiso fetal grave en RCIU, con alta mortalidad perinatal."
+},
+{
+  topic: 7,
+  q: "El RCIU simétrico (tipo I) se caracteriza por:",
+  opts: ["Afección tardía (3er trimestre), cabeza preservada, abdomen pequeño","Afección temprana (1er-2do trimestre), reducción proporcional de todos los parámetros biométricos","Solo afectación de los miembros inferiores","Peso normal con longitud disminuida"],
+  ans: 1,
+  exp: "RCIU simétrico: afecta todos los parámetros biométricos (CC, CA, LF) de forma proporcional desde el 1er trimestre. Causas: cromosomopatías, infecciones TORCH, toxinas. El pronóstico neurológico es reservado."
+},
+{
+  topic: 7,
+  q: "¿Cuál es la complicación metabólica más frecuente en el RCIU severo al nacer?",
+  opts: ["Hipercalcemia","Hipoglucemia por reservas de glucógeno disminuidas","Hipernatremia","Acidosis metabólica crónica con anemia"],
+  ans: 1,
+  exp: "La hipoglucemia es la complicación metabólica más frecuente en RCIU. El feto con RCIU agota reservas de glucógeno por la hipoxia crónica y tiene hiperinsulinismo relativo. Monitoreo glucémico frecuente es esencial."
+},
+{
+  topic: 7,
+  q: "La policitemia en el RCIU se produce como mecanismo compensador de:",
+  opts: ["Hiperviscosidad sanguínea placentaria","Hipoxia fetal crónica que aumenta eritropoyetina","Transfusión feto-materna","Infección intrauterina por parvovirus B19"],
+  ans: 1,
+  exp: "La hipoxia crónica fetal en RCIU estimula la eritropoyetina, aumentando los eritrocitos (policitemia). Esta policitemia puede causar hiperviscosidad, trombosis y complicaciones metabólicas."
+},
+{
+  topic: 7,
+  q: "El síndrome de 'brain sparing' (preservación cerebral) en el RCIU se evidencia por:",
+  opts: ["Aumento del perímetro cefálico con circunferencia abdominal normal","Redistribución del flujo sanguíneo con vasodilatación de arteria cerebral media (índice cerebro-placentario <1)","Calcificaciones cerebrales en ecografía","Microcefalia con cabeza pequeña"],
+  ans: 1,
+  exp: "Brain sparing: redistribución hemodinámica fetal con vasodilatación de arteria cerebral media (ACM) para preservar el aporte cerebral. IP ACM bajo / índice cerebro-placentario <1. Indica compromiso fetal avanzado."
+},
+{
+  topic: 7,
+  q: "El RCIU asimétrico (tipo II) tiene como causa más frecuente:",
+  opts: ["Trisomía 18","Insuficiencia uteroplacentaria (HTA, preeclampsia)","Infección por CMV","Síndrome de alcohol fetal"],
+  ans: 1,
+  exp: "RCIU asimétrico: afecta principalmente circunferencia abdominal (reservas hepáticas) conservando inicialmente el crecimiento cefálico. Causa principal: insuficiencia uteroplacentaria en 3er trimestre (HTA, preeclampsia)."
+},
+{
+  topic: 7,
+  q: "¿Cuándo se recomienda la finalización del embarazo en RCIU con flujo diastólico reverso en arteria umbilical sin bienestar fetal?",
+  opts: ["Expectante hasta las 40 semanas","A partir de las 34 semanas con maduración pulmonar","A las 28 semanas independientemente","Solo si hay desaceleraciones variables en el NST"],
+  ans: 1,
+  exp: "RCIU con DFAR: si >34 sem, finalización. Si <34 sem y estabilidad, vigilancia estrecha con Doppler venoso y perfil biofísico; corticoides y decisión individualizada. DFAR antes de 34 sem con afectación venosa → finalización."
+},
+{
+  topic: 7,
+  q: "El enterocolitis necrotizante (ECN) en el RN con RCIU se asocia principalmente a:",
+  opts: ["Policitemia que causa isquemia mesentérica","Hiperviscosidad y redistribución del flujo con isquemia intestinal, especialmente con DFAD/DFAR","Inmadurez del sistema inmune intestinal exclusivamente","Infección por rotavirus en las primeras 24 horas"],
+  ans: 1,
+  exp: "En RCIU con compromiso del flujo umbilical (DFAD/DFAR), hay redistribución hacia el cerebro a expensas del flujo esplácnico, predisponiendo a isquemia intestinal y ECN. Los RCIU tienen 3-5x más riesgo de ECN."
+},
+// ============================================================
+// TEMA 9: RECIÉN NACIDO BAJO PESO (10 preguntas)
+// ============================================================
+{
+  topic: 8,
+  q: "¿Cuál es la definición de recién nacido de bajo peso al nacer (BPN)?",
+  opts: ["Peso <2000 g independientemente de la edad gestacional","Peso <2500 g independientemente de la edad gestacional","Peso <percentil 10 para su edad gestacional","Peso <1500 g independientemente de la edad gestacional"],
+  ans: 1,
+  exp: "BPN: peso al nacer <2500 g, independientemente de la edad gestacional. Puede ser por prematurez o por RCIU. El BPN es la principal causa de morbimortalidad neonatal mundialmente."
+},
+{
+  topic: 8,
+  q: "El método Canguro (contacto piel a piel) en el recién nacido de bajo peso ofrece los siguientes beneficios EXCEPTO:",
+  opts: ["Estabilidad térmica por calor materno","Estimulación del sistema inmune del RN","Reducción de apneas y bradicardia","Acelera la mineralización ósea en prematuros MBPN"],
+  ans: 3,
+  exp: "El método canguro ofrece estabilización térmica, estimula lactancia, reduce apneas/bradicardia, mejora vínculo, estimula el sistema nervioso y reduce infecciones. No hay evidencia de que acelere la mineralización ósea como efecto específico."
+},
+{
+  topic: 8,
+  q: "El principal riesgo respiratorio en un recién nacido de bajo peso por prematuridad es:",
+  opts: ["Taquipnea transitoria","Síndrome de distrés respiratorio por déficit de surfactante","Síndrome de aspiración de meconio","Parálisis diafragmática congénita"],
+  ans: 1,
+  exp: "El SDR por déficit de surfactante es el principal riesgo respiratorio en prematuros BPN. A menor peso y EG, mayor riesgo. A las 28 sem ~60% lo presenta; a las 34 sem <10%."
+},
+{
+  topic: 8,
+  q: "El inicio de la nutrición parenteral en el recién nacido de extremo bajo peso debe comenzar:",
+  opts: ["A los 3-5 días de vida cuando tolere la vía oral","En las primeras 24 horas de vida (idealmente en las 1eras horas)","Solo si la glucemia es <50 mg/dL","Solo tras confirmar ausencia de ECN por radiografía"],
+  ans: 1,
+  exp: "La NP en EBPN debe iniciarse en las primeras horas de vida. Aminoácidos desde el día 1 (2-3 g/kg/día) para evitar catabolismo; lípidos desde el día 1-2. La nutrición enteral mínima (nutrición trófica) también se inicia tempranamente."
+},
+{
+  topic: 8,
+  q: "La causa más frecuente de bajo peso en países en desarrollo es:",
+  opts: ["Trisomía 21 y otras cromosomopatías","Prematuridad y/o RCIU secundario a desnutrición materna e infecciones","Diabetes mellitus gestacional","Embarazo gemelar como única causa"],
+  ans: 1,
+  exp: "En países en desarrollo, el BPN es causado principalmente por prematuridad y/o RCIU, ambas relacionadas con desnutrición materna, infecciones (malaria, VIH, sífilis) e HTA. Es multifactorial."
+},
+{
+  topic: 8,
+  q: "¿Cuál es el objetivo de velocidad de crecimiento postnatal recomendado para el RN prematuro de MBPN?",
+  opts: ["10-15 g/kg/día","15-20 g/kg/día","20-30 g/kg/día","5-10 g/kg/día"],
+  ans: 1,
+  exp: "La velocidad de crecimiento óptima en MBPN es 15-20 g/kg/día (similar al crecimiento intrauterino de la semana 24-36). Para lograrla se requiere aportes de 110-130 kcal/kg/día y 3.5-4 g/kg/día de proteínas."
+},
+{
+  topic: 8,
+  q: "La leche materna en el recién nacido de MBPN debe suplementarse con fortificadores porque:",
+  opts: ["La leche materna no tiene defensas inmunológicas para prematuros","La leche materna no satisface los requerimientos de proteínas, calcio, fósforo y calorías del prematuro","La leche materna causa ictericia grave en prematuros","La leche materna produce enterocolitis necrotizante en MBPN"],
+  ans: 1,
+  exp: "La leche materna es el alimento de elección para prematuros, pero es insuficiente en proteínas (3-4 vs 2.3 g/dL), calcio, fósforo y vitaminas para prematuros <34 sem o <1800g. Los fortificadores (HMF) cubren este déficit."
+},
+{
+  topic: 8,
+  q: "La anemia del prematuro de bajo peso se debe principalmente a:",
+  opts: ["Hemólisis por incompatibilidad ABO","Baja producción de eritropoyetina (EPO), flebotomías y vida media corta del eritrocito fetal","Déficit de hierro materno durante el embarazo","Infección por parvovirus B19 intraútero"],
+  ans: 1,
+  exp: "Anemia del prematuro: múltiples factores: 1) Baja EPO (riñón inmaduro), 2) Flebotomías frecuentes, 3) Vida media corta del eritrocito fetal (60-70 días), 4) Crecimiento rápido que diluye la masa eritrocitaria."
+},
+{
+  topic: 8,
+  q: "¿Cuál es el hematocrito umbral para transfusión en prematuros MBPN en ventilación mecánica?",
+  opts: ["Hto <25% (Hb <8 g/dL)","Hto <35-40% (Hb <12 g/dL) si hay signos de compromiso cardiovascular o respiratorio","Hto <20% (Hb <7 g/dL)","Hto <45% en todos los prematuros"],
+  ans: 1,
+  exp: "Umbrales de transfusión en prematuros VM: Hto <35-40% (Hb <12 g/dL) con VM; Hto <30% (Hb <10 g/dL) en O2 suplementario; Hto <25% (Hb <8 g/dL) si estable. Guías restrictivas reducen exposición a donantes."
+},
+{
+  topic: 8,
+  q: "El seguimiento del recién nacido de bajo peso al alta incluye principalmente:",
+  opts: ["Solo neurológico por riesgo de parálisis cerebral","Control de crecimiento, neurodesarrollo, oftalmología (ROP), audiología y vacunación según edad corregida","Solo control de peso hasta los 2 años","Evaluación cardiológica anual exclusivamente"],
+  ans: 1,
+  exp: "El seguimiento del MBPN incluye: neurodesarrollo (riesgo PCI, déficit cognitivo), crecimiento, ROP (hasta vascularización completa), audiología (hipoacusia), vacunas según edad corregida y evaluación nutricional."
+},
+// ============================================================
+// TEMA 10: LACTANCIA MATERNA (10 preguntas)
+// ============================================================
+{
+  topic: 9,
+  q: "¿Cuáles son las únicas contraindicaciones absolutas para la lactancia materna según la OMS y AAP?",
+  opts: ["Hepatitis B materna, diabetes tipo 1 materna","Infección por VIH en países desarrollados (según guías específicas), galactosemia clásica en el RN, madres con uso de quimioterapia activa","Tuberculosis activa, mastitis infecciosa, herpes labial materno","Fiebre materna >38°C, ictericia neonatal"],
+  ans: 1,
+  exp: "Contraindicaciones absolutas: 1) RN con galactosemia clásica, 2) Madres VIH+ en países donde fórmula es segura/disponible, 3) Quimioterapia citotóxica materna activa, 4) Consumo de algunas drogas ilícitas. Hepatitis B y TBC no son contraindicaciones si se toman precauciones."
+},
+{
+  topic: 9,
+  q: "El calostro, producido en los primeros 2-5 días postparto, se caracteriza principalmente por:",
+  opts: ["Alto contenido en grasas y bajo en proteínas","Alto contenido en inmunoglobulinas (IgA secretora), lactoferrina, proteínas y bajo contenido calórico","Alto contenido en lactosa y bajo en proteínas","Idéntica composición que la leche madura"],
+  ans: 1,
+  exp: "El calostro tiene alta concentración de IgA secretora (principal defensa intestinal del RN), lactoferrina, linfocitos, factores de crecimiento y betacaroteno. Es bajo en grasa y lactosa pero rico en proteínas inmunológicas."
+},
+{
+  topic: 9,
+  q: "La ictericia por lactancia materna (ictericia de la leche materna) se caracteriza por:",
+  opts: ["Aparece en las primeras 24 horas de vida","Aparece después del 5-7° día, puede llegar a >20 mg/dL y persistir hasta 3 meses; RN sano bien alimentado","Requiere siempre fototerapia y suspensión de la lactancia","Se asocia a hemólisis e hiperbilirrubinemia directa"],
+  ans: 1,
+  exp: "Ictericia de la leche materna: inicio tardío (>7 días), puede ser intensa (>20 mg/dL), persiste hasta 3 meses. Mecanismo: inhibidores de glucuronidación en leche materna. El RN está bien; raramente requiere suspender la lactancia."
+},
+{
+  topic: 9,
+  q: "La Organización Mundial de la Salud recomienda la lactancia materna exclusiva durante:",
+  opts: ["3 meses de vida","Los primeros 6 meses de vida","1 año de vida","Hasta que el bebé decida suspenderla"],
+  ans: 1,
+  exp: "OMS recomienda lactancia materna exclusiva (sin agua, jugos, ni otros alimentos) durante los primeros 6 meses. Luego continuar con lactancia materna más alimentación complementaria hasta los 2 años o más."
+},
+{
+  topic: 9,
+  q: "La succión frecuente del recién nacido estimula la producción de leche principalmente a través de:",
+  opts: ["Aumento de progesterona materna","La liberación de prolactina hipofisaria (reflejo de eyección no necesario para producción)","Aumento de estrógenos postparto","Activación del eje hipotálamo-suprarrenal"],
+  ans: 1,
+  exp: "La succión activa receptores en el pezón → señal al hipotálamo → hipófisis anterior libera prolactina → producción de leche. La oxitocina causa el reflejo de eyección. A mayor succión, mayor producción (oferta-demanda)."
+},
+{
+  topic: 9,
+  q: "El reflejo de eyección (let-down reflex) de la leche materna está mediado por:",
+  opts: ["Prolactina de la hipófisis anterior","Oxitocina de la hipófisis posterior","Hormona del crecimiento","Cortisol suprarrenal"],
+  ans: 1,
+  exp: "La oxitocina (hipófisis posterior) causa la contracción de las células mioepiteliales → eyección de la leche. Es activada por succión, llanto del bebé, o condicionamiento. El estrés inhibe la oxitocina."
+},
+{
+  topic: 9,
+  q: "¿Cuáles son los beneficios demostrados de la lactancia materna para el recién nacido?",
+  opts: ["Solo previene diarrea aguda","Reduce infecciones (OMA, diarrea, infecciones respiratorias), ECN, alergias, obesidad, diabetes tipo 1 y 2 y mejora el neurodesarrollo","Solo mejora el vínculo materno-infantil sin beneficios inmunológicos","Únicamente previene el síndrome de muerte súbita del lactante"],
+  ans: 1,
+  exp: "La LM exclusiva reduce: infecciones GI/respiratorias, OMA, ECN (prematuros), asma, alergias, obesidad, DM tipo 1/2, leucemia, SMSL. Mejora neurodesarrollo (coeficiente intelectual). Beneficios dosis-respuesta."
+},
+{
+  topic: 9,
+  q: "El agarre correcto al pecho (latch) debe evaluarse por:",
+  opts: ["El ángulo de 45° de la cabeza del bebé solamente","Boca bien abierta, areola incluida, labios evertidos, mentón tocando el pecho, succión rítmica con deglución audible","Solo por el tiempo de succión (>15 min por pecho)","Únicamente por el aumento de peso del RN en los controles"],
+  ans: 1,
+  exp: "Buen agarre: boca muy abierta (>120°), labios evertidos, areola incluida (especialmente la inferior), mentón tocando el pecho, nariz libre, mejillas redondeadas, succión rítmica profunda con deglución audible."
+},
+{
+  topic: 9,
+  q: "La mastitis puerperal se maneja con:",
+  opts: ["Suspensión inmediata y total de la lactancia materna","Continuar amamantando (vaciado frecuente), calor local, analgesia; antibióticos (cloxacilina/dicloxacilina) si no mejora en 24h","Antibióticos IV hospitalizados siempre","Solo antibióticos, sin continuar la lactancia"],
+  ans: 1,
+  exp: "Mastitis: vaciado frecuente del pecho (lo más importante), calor local, analgesia (ibuprofeno). Si no mejora en 12-24h o hay síntomas sistémicos: antibióticos anti-estafilocócicos (dicloxacilina o cefalexina VO 10-14 días)."
+},
+{
+  topic: 9,
+  q: "La leche de banco (leche materna pasteurizada) para prematuros MBPN está indicada cuando:",
+  opts: ["La madre lo solicite independientemente de la disponibilidad de su propia leche","La leche materna propia no es suficiente o no está disponible, siendo preferible a la fórmula para prematuros","La madre tiene VIH y desea amamantar","Solo para prematuros >32 semanas"],
+  ans: 1,
+  exp: "La leche de banco (pasteurizada, donada) se usa cuando la propia leche materna no está disponible/suficiente en MBPN. Reduce la incidencia de ECN. La pasteurización Holder (62.5°C × 30 min) elimina VIH y CMV pero preserva componentes bioactivos."
+},
+// ============================================================
+// TEMA 11: SEPSIS NEONATAL (10 preguntas)
+// ============================================================
+{
+  topic: 10,
+  q: "La sepsis neonatal de inicio temprano (EOS) se define como aquella que ocurre en las primeras:",
+  opts: ["24 horas de vida","72 horas de vida","7 días de vida (algunos autores hasta 72h para EOS)","14 días de vida"],
+  ans: 2,
+  exp: "EOS (Early-onset sepsis): <72 horas (algunos la definen <7 días de vida para incluir SMNS tardía). Los patógenos principales son SGB, E. coli y Listeria monocytogenes. La infección es de origen materno (ascendente o hematógena)."
+},
+{
+  topic: 10,
+  q: "El microorganismo más frecuente en la sepsis neonatal de inicio temprano en países desarrollados es:",
+  opts: ["Staphylococcus aureus","Streptococcus agalactiae (estreptococo grupo B, SGB)","Klebsiella pneumoniae","Candida albicans"],
+  ans: 1,
+  exp: "SGB (Streptococcus agalactiae) es el patógeno #1 en EOS en países desarrollados (EE.UU., Europa). E. coli es el #2 y predomina en prematuros. En países en desarrollo, gramnegativos (Klebsiella, E. coli) predominan."
+},
+{
+  topic: 10,
+  q: "Los factores de riesgo maternos para sepsis neonatal por SGB de inicio temprano incluyen EXCEPTO:",
+  opts: ["Colonización materna por SGB en cultivo rectovaginal en semana 35-37","Bacteriuria por SGB durante el embarazo","Ruptura de membranas >18 horas","Madre con vacuna de SGB completa (3 dosis)"],
+  ans: 3,
+  exp: "La vacuna de SGB no existe comercialmente todavía (en investigación). Factores de riesgo: colonización materna SGB, bacteriuria SGB, ROM >18h, fiebre intraparto >38°C, parto <37 semanas, hermano anterior con enfermedad invasiva por SGB."
+},
+{
+  topic: 10,
+  q: "La sepsis neonatal de inicio tardío (LOS) es causada frecuentemente por:",
+  opts: ["Streptococcus agalactiae exclusivamente","Staphylococcus coagulasa negativo (SCN), S. aureus y bacilos gramnegativos en UCIN (nosocomial)","Solo por E. coli en prematuros","Listeria monocytogenes a los 15 días de vida"],
+  ans: 1,
+  exp: "LOS (Late-onset sepsis, >72h): principalmente nosocomial en UCIN. SCN (Staph epidermidis) es el #1 en prematuros con catéteres; S. aureus, Klebsiella, E. coli, Pseudomonas y Candida son frecuentes."
+},
+{
+  topic: 10,
+  q: "Los marcadores de laboratorio más utilizados para el diagnóstico de sepsis neonatal son:",
+  opts: ["Glucosa y calcio sérico","PCR (proteína C reactiva), procalcitonina (PCT) y hemograma con diferencial","Solo hemocultivo positivo confirma el diagnóstico","Bilirrubina total y transaminasas"],
+  ans: 1,
+  exp: "Marcadores de sepsis neonatal: PCR (sensibilidad 90% a las 24-48h del inicio), PCT (más precoz, eleva en 3-6h), hemograma (neutropenia <1500, índice inmaduro/total >0.2, plaquetopenia). El hemocultivo es el estándar de oro."
+},
+{
+  topic: 10,
+  q: "El tratamiento empírico de primera línea para la sepsis neonatal de inicio temprano es:",
+  opts: ["Ceftriaxona IV","Ampicilina + gentamicina IV","Vancomicina + meropenem IV","Clindamicina + amikacina IV"],
+  ans: 1,
+  exp: "EOS: Ampicilina + Gentamicina IV. Esta combinación cubre SGB (Amp), E. coli (Genta) y Listeria (Amp). Ceftriaxona evitar <4 sem (desplaza bilirrubina). La vancomicina se reserva para LOS con sospecha de MRSA o SCN."
+},
+{
+  topic: 10,
+  q: "El líquido cefalorraquídeo normal en el recién nacido a término tiene como parámetros:",
+  opts: ["Leucocitos: 0-5; proteínas: 15-45 mg/dL","Leucocitos: 0-32 células/mm³; proteínas: 20-170 mg/dL; glucosa: 44-248 mg/dL","Leucocitos: 50-100; proteínas >200 mg/dL","Leucocitos: 0-5; proteínas: 80-120 mg/dL; glucosa siempre >60 mg/dL"],
+  ans: 1,
+  exp: "LCR normal RN a término: Leucocitos 0-32 células/mm³ (predominio mononuclear), proteínas 20-170 mg/dL, glucosa 44-248 mg/dL. Los valores son más amplios que en adultos. En prematuros son aún más elevados."
+},
+{
+  topic: 10,
+  q: "La meningitis neonatal se caracteriza por signos clínicos que incluyen:",
+  opts: ["Rigidez de nuca siempre presente (signo de Kernig positivo en todos)","Irritabilidad, fontanela tensa/abombada, convulsiones, letargia (la rigidez de nuca es frecuentemente AUSENTE en neonatos)","Fiebre >39°C siempre presente","Petequias y púrpura en todos los casos"],
+  ans: 1,
+  exp: "En neonatos, la meningitis frecuentemente NO presenta rigidez de nuca ni signos meníngeos clásicos. Los síntomas son inespecíficos: irritabilidad, letargia, fontanela abombada, convulsiones, rechazo de la alimentación, inestabilidad térmica."
+},
+{
+  topic: 10,
+  q: "La profilaxis intraparto con penicilina para prevenir la sepsis neonatal por SGB está indicada cuando:",
+  opts: ["Toda cesárea electiva sin trabajo de parto","Cultivo rectovaginal para SGB positivo entre 35-37 semanas, bacteriuria SGB, o factores de riesgo si cultivo desconocido","Solo en madres con antecedente de hijo anterior con sepsis por SGB","En todas las gestantes con membranas rotas >6 horas"],
+  ans: 1,
+  exp: "Profilaxis intraparto SGB: cultivo SGB+ en semana 35-37, bacteriuria SGB en el embarazo actual, o hijo anterior con infección invasiva por SGB, o cultivo desconocido + factores de riesgo. Penicilina G o ampicilina IV."
+},
+{
+  topic: 10,
+  q: "La candidiasis neonatal sistémica (invasiva) es más frecuente en:",
+  opts: ["RN a término alimentados con lactancia materna exclusiva","Prematuros EBPN (<1000g) con NP central, antibióticos de amplio espectro y sin profilaxis antifúngica","RN término con sepsis por SGB no tratada","RN con galactosemia en tratamiento dietético"],
+  ans: 1,
+  exp: "Candidemia neonatal ocurre principalmente en EBPN (<1000g) en UCIN, con catéteres centrales, antibióticos de amplio espectro, corticoides y NP. Fluconazol profiláctico reduce la incidencia en EBPN. Anfotericina B o micafungina son los tratamientos."
+},
+// ============================================================
+// TEMA 12: REANIMACIÓN NEONATAL (10 preguntas)
+// ============================================================
+{
+  topic: 11,
+  q: "Según el Programa de Reanimación Neonatal (NRP) 2020, ¿cuántos segundos se tienen para completar los pasos iniciales de reanimación?",
+  opts: ["15 segundos","30 segundos","60 segundos","2 minutos"],
+  ans: 1,
+  exp: "Los pasos iniciales (posición, despeje de vía aérea si es necesario, secado y estimulación) deben completarse en los primeros 30 segundos de vida. Esta es la 'regla de los 30 segundos' del NRP."
+},
+{
+  topic: 11,
+  q: "En la evaluación inicial del recién nacido durante la reanimación, ¿cuáles son las tres preguntas que determinan si se procede a cuidados de rutina?",
+  opts: ["¿Llora fuerte? ¿Está rosado? ¿Tiene peso >2500g?","¿Es a término? ¿Tiene buen tono muscular? ¿Llora o respira?","¿Apgar >7? ¿Está a término? ¿Sin malformaciones?","¿Frecuencia cardíaca >100? ¿Respira? ¿Sin meconio?"],
+  ans: 1,
+  exp: "Las 3 preguntas del NRP: 1) ¿Es a término (≥37 sem)? 2) ¿Tiene buen tono muscular? 3) ¿Llora o respira bien? Si las 3 son SÍ → cuidados de rutina con la madre. Si alguna es NO → pasos iniciales de reanimación."
+},
+{
+  topic: 11,
+  q: "La concentración de oxígeno inicial recomendada para iniciar la ventilación con presión positiva (VPP) en un recién nacido a término es:",
+  opts: ["Oxígeno al 100%","Aire ambiental (FiO2 21%)","FiO2 40-50%","FiO2 60-80%"],
+  ans: 1,
+  exp: "NRP 2020: RN a término → VPP con aire ambiental (21%). RN prematuro <35 semanas → FiO2 21-30%. Se titula según la SpO2 preductal con oximetría. El O2 al 100% aumenta radicales libres y empeora el pronóstico neurológico."
+},
+{
+  topic: 11,
+  q: "¿A qué frecuencia cardíaca se inicia la ventilación con presión positiva (VPP) en el neonato?",
+  opts: ["FC <80 lpm a pesar de estimulación","FC <100 lpm o ausencia de respiración espontánea efectiva a los 30 segundos","FC <60 lpm en cualquier momento","FC <120 lpm en las primeras 2 horas"],
+  ans: 1,
+  exp: "VPP está indicada si: 1) FC <100 lpm, 2) Apnea o respiración ineficaz (jadeo), tras los 30 segundos de pasos iniciales. La VPP es la intervención más importante en reanimación neonatal."
+},
+{
+  topic: 11,
+  q: "Las compresiones cardíacas en la reanimación neonatal se inician cuando:",
+  opts: ["FC <100 lpm a pesar de VPP por 30 segundos","FC <60 lpm a pesar de VPP efectiva por 30 segundos","En el primer minuto de vida si no llora","FC <80 lpm con cianosis central"],
+  ans: 1,
+  exp: "Compresiones cardíacas: FC <60 lpm después de 30 segundos de VPP efectiva. La ventilación DEBE ser efectiva (se debe ver movimiento torácico) antes de iniciar compresiones. Técnica: 2 pulgares rodeando el tórax."
+},
+{
+  topic: 11,
+  q: "La relación compresiones:ventilaciones en la reanimación neonatal es:",
+  opts: ["15:2 como en la RCP pediátrica","3:1 (3 compresiones por 1 ventilación = 90 compresiones y 30 ventilaciones/min)","30:2 como en la RCP del adulto","5:1 con 100 compresiones/min"],
+  ans: 1,
+  exp: "RCP neonatal: relación 3:1. Se cuentan '1-y-2-y-3-y-ventila' = 90 compresiones + 30 ventilaciones = 120 eventos/min. Diferente al adulto y pediátrico porque las causas suelen ser respiratorias."
+},
+{
+  topic: 11,
+  q: "La epinefrina (adrenalina) está indicada en la reanimación neonatal cuando:",
+  opts: ["FC <100 lpm a pesar de VPP","FC <60 lpm a pesar de VPP + compresiones cardíacas durante 30-60 segundos con FiO2 100%","Apnea primaria con cianosis","FC <80 lpm sin respuesta a estimulación"],
+  ans: 1,
+  exp: "Epinefrina indicada: FC <60 lpm tras 30-60 seg de VPP con O2 al 100% + compresiones coordinadas. Dosis: 0.01-0.03 mg/kg IV (0.1-0.3 mL/kg de dilución 1:10,000). Vía intratraqueal solo provisional a dosis más alta."
+},
+{
+  topic: 11,
+  q: "El manejo del recién nacido con líquido amniótico meconial (LAM) según NRP 2020 indica que:",
+  opts: ["Siempre se debe aspirar la tráquea antes de la primera respiración","Si el RN está vigoroso (llora, buen tono, FC>100), se procede a cuidados de rutina sin aspiración rutinaria","Se intuba a todos los RN con LAM independientemente del estado al nacer","La aspiración orofaríngea en el periné es obligatoria"],
+  ans: 1,
+  exp: "NRP 2020: RN con LAM vigoroso (llanta, tono y FC>100) → cuidados de rutina, sin laringoscopia/aspiración traqueal rutinaria. RN con LAM deprimido (hipotonía, apnea, FC<100) → intubación y aspiración traqueal solo si hay obstrucción."
+},
+{
+  topic: 11,
+  q: "¿Cuál es la dosis de epinefrina endovenosa en la reanimación neonatal?",
+  opts: ["0.1 mg/kg de solución 1:1000","0.01-0.03 mg/kg de solución 1:10,000 (0.1-0.3 mL/kg)","0.5 mg/kg de solución 1:10,000","1 mg IV en bolo sin calcular peso"],
+  ans: 1,
+  exp: "Epinefrina IV: 0.01-0.03 mg/kg de solución 1:10,000 (= 0.1-0.3 mL/kg). Si se administra por vía intratraqueal provisional: 0.05-0.1 mg/kg. La vía IV/IO es superior; la intratraqueal tiene absorción impredecible."
+},
+{
+  topic: 11,
+  q: "La hipotermia terapéutica (HT) en la encefalopatía hipóxico-isquémica (EHI) moderada-grave está indicada en RN:",
+  opts: ["<28 semanas de gestación con EHI grave","≥36 semanas, con EHI moderada-grave, iniciada dentro de las primeras 6 horas de vida","Cualquier EHI leve que presente convulsiones","A cualquier edad gestacional con APGAR <5 al minuto"],
+  ans: 1,
+  exp: "HT sistémica: indicada en ≥36 semanas con EHI moderada-grave (criterios de Thompson o Sarnat), iniciada dentro de 6 horas. Temperatura objetivo: 33-34°C durante 72 horas. Reduce mortalidad/discapacidad en ~25-30%."
+}
+];
+
+// State
+let answered = new Array(questions.length).fill(null);
+let currentTopic = 0;
+let topicScores = topics.map(() => ({ correct: 0, total: 0 }));
+
+function getFilteredQuestions() {
+  return questions.map((q, i) => ({...q, idx: i})).filter(q => q.topic === currentTopic);
+}
+
+function renderTopicNav() {
+  const nav = document.getElementById('topic-nav');
+  nav.innerHTML = topics.map((t, i) => {
+    const qs = questions.filter(q => q.topic === i);
+    const ans = qs.filter((_, qi) => answered[questions.indexOf(qs[qi])] !== null);
+    const done = ans.length === qs.length;
+    const cls = i === currentTopic ? 'topic-btn active' : done ? 'topic-btn done' : 'topic-btn';
+    return `<button class="${cls}" onclick="switchTopic(${i})">${i+1}. ${t.split(' ').slice(0,3).join(' ')}</button>`;
+  }).join('');
+}
+
+function renderQuiz() {
+  const filtered = getFilteredQuestions();
+  const allAnswered = answered.filter(a => a !== null).length;
+  const allCorrect = answered.reduce((s, a, i) => a === questions[i].ans ? s+1 : s, 0);
+  const allWrong = answered.filter(a => a !== null).length - allCorrect;
+
+  document.getElementById('q-current').textContent = allAnswered;
+  document.getElementById('q-total').textContent = questions.length;
+  document.getElementById('score-count').textContent = allCorrect;
+  document.getElementById('wrong-count').textContent = allWrong;
+  document.getElementById('pbar').style.width = (allAnswered / questions.length * 100) + '%';
+
+  if (allAnswered === questions.length) {
+    showFinal();
+    return;
+  }
+
+  const body = document.getElementById('quiz-body');
+  body.innerHTML = filtered.map((q, qi) => {
+    const userAns = answered[q.idx];
+    const isAnswered = userAns !== null;
+    const cardCls = isAnswered ? (userAns === q.ans ? 'question-card answered-correct' : 'question-card answered-wrong') : 'question-card';
+
+    const opts = q.opts.map((o, oi) => {
+      let cls = 'option-btn';
+      if (isAnswered) {
+        if (oi === q.ans) cls += ' correct';
+        else if (oi === userAns) cls += ' wrong';
+      }
+      return `<button class="${cls}" onclick="answer(${q.idx},${oi})" ${isAnswered ? 'disabled' : ''}>
+        <span class="letter">${['A','B','C','D'][oi]}.</span> ${o}
+      </button>`;
+    }).join('');
+
+    return `<div class="${cardCls}" id="qcard-${q.idx}">
+      <div class="question-meta">Tema ${q.topic+1}: ${topics[q.topic]} · Pregunta ${qi+1}/10</div>
+      <div class="question-text">${qi+1}. ${q.q}</div>
+      <div class="options">${opts}</div>
+      <div class="explanation ${isAnswered ? 'show' : ''}" id="exp-${q.idx}">
+        <b>💡 Explicación:</b> ${q.exp}
+      </div>
+    </div>`;
+  }).join('');
+  renderTopicNav();
+}
+
+function answer(idx, opt) {
+  if (answered[idx] !== null) return;
+  answered[idx] = opt;
+  const q = questions[idx];
+  if (opt === q.ans) topicScores[q.topic].correct++;
+  topicScores[q.topic].total++;
+
+  // Auto advance to next topic if all current answered
+  const filtered = getFilteredQuestions();
+  const doneAll = filtered.every(fq => answered[fq.idx] !== null);
+
+  renderQuiz();
+
+  if (doneAll) {
+    const next = topics.findIndex((_, i) => i > currentTopic && questions.filter(q => q.topic === i).some((_, qi) => answered[questions.indexOf(questions.filter(q => q.topic === i)[qi])] === null));
+    if (next !== -1) {
+      setTimeout(() => {
+        currentTopic = next;
+        renderQuiz();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      }, 600);
+    }
+  }
+}
+
+function switchTopic(t) {
+  currentTopic = t;
+  renderQuiz();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function showFinal() {
+  document.getElementById('quiz-body').innerHTML = '';
+  const fs = document.getElementById('final-screen');
+  fs.style.display = 'block';
+
+  const total = questions.length;
+  const correct = answered.reduce((s, a, i) => a === questions[i].ans ? s+1 : s, 0);
+  const pct = Math.round(correct/total*100);
+
+  document.getElementById('final-pct').textContent = `${correct}/${total} (${pct}%)`;
+  const msg = pct >= 90 ? '¡Excelente! Estás listo para el concurso.' :
+              pct >= 70 ? 'Muy bien. Repasa los temas con menor puntaje.' :
+              pct >= 50 ? 'Bien encaminado. Refuerza las áreas débiles.' : 'Continúa estudiando. ¡Tú puedes!';
+  document.getElementById('final-msg').textContent = msg;
+
+  const tr = document.getElementById('topic-results');
+  tr.innerHTML = '<h3 style="margin-bottom:12px;color:var(--primary)">Resultados por Tema</h3>' +
+    topicScores.map((s, i) => {
+      const pct = s.total ? Math.round(s.correct/s.total*100) : 0;
+      const color = pct >= 70 ? 'var(--correct)' : pct >= 50 ? 'orange' : 'var(--wrong)';
+      return `<div class="topic-result-row">
+        <span style="flex:1;font-weight:600">${i+1}. ${topics[i]}</span>
+        <span style="color:${color};font-weight:700;margin:0 12px">${s.correct}/${s.total}</span>
+        <div class="mini-bar-wrap"><div class="mini-bar" style="width:${pct}%;background:${color}"></div></div>
+      </div>`;
+    }).join('');
+}
+
+function restart() {
+  answered = new Array(questions.length).fill(null);
+  topicScores = topics.map(() => ({ correct: 0, total: 0 }));
+  currentTopic = 0;
+  document.getElementById('final-screen').style.display = 'none';
+  renderQuiz();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
