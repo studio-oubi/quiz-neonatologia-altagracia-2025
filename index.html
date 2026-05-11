@@ -154,6 +154,39 @@
   }
   .explanation.show { display: block; }
 
+  /* Correction menu */
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .card-header .question-meta { flex: 1; }
+  .menu-btn {
+    background: none; border: none; cursor: pointer; font-size: 1.2rem;
+    color: var(--muted); padding: 0 4px; line-height: 1; border-radius: 6px;
+    transition: background 0.15s; flex-shrink: 0;
+  }
+  .menu-btn:hover { background: #e5e7eb; color: var(--text); }
+  .correction-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    z-index: 1000; align-items: center; justify-content: center;
+  }
+  .correction-overlay.open { display: flex; }
+  .correction-box {
+    background: white; border-radius: 16px; padding: 24px; width: 320px;
+    max-width: 92vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .correction-box h3 { font-size: 0.95rem; color: var(--primary); margin-bottom: 6px; }
+  .correction-box p { font-size: 0.8rem; color: var(--muted); margin-bottom: 16px; line-height: 1.4; }
+  .correction-opts { display: flex; flex-direction: column; gap: 8px; }
+  .correction-opt {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    border: 2px solid var(--border); border-radius: 10px; cursor: pointer;
+    font-size: 0.88rem; background: white; text-align: left; transition: all 0.15s;
+  }
+  .correction-opt:hover { border-color: var(--accent); background: #eaf3fb; }
+  .correction-opt.current-correct { border-color: var(--correct); background: #d4efdf; color: var(--correct); font-weight: 600; }
+  .correction-opt .opt-letter { font-weight: 700; color: var(--accent); min-width: 18px; }
+  .correction-opt.current-correct .opt-letter { color: var(--correct); }
+  .correction-cancel { margin-top: 12px; width: 100%; padding: 9px; border: none; background: #f3f4f6; border-radius: 8px; cursor: pointer; font-size: 0.88rem; color: var(--muted); }
+  .correction-cancel:hover { background: #e5e7eb; }
+
   /* Final screen */
   #final-screen {
     display: none;
@@ -213,6 +246,16 @@
   <button id="btn-q2" onclick="switchQuiz(2)">📋 Quiz 2</button>
 </div>
 <div class="progress-bar-wrap"><div class="progress-bar" id="pbar"></div></div>
+
+<!-- Correction modal -->
+<div class="correction-overlay" id="correction-overlay" onclick="closeCorrection(event)">
+  <div class="correction-box">
+    <h3>✏️ Corregir respuesta correcta</h3>
+    <p id="correction-question-preview"></p>
+    <div class="correction-opts" id="correction-opts"></div>
+    <button class="correction-cancel" onclick="closeCorrection()">Cancelar</button>
+  </div>
+</div>
 
 <div class="container">
   <div class="score-bar">
@@ -1357,7 +1400,10 @@ function renderQuiz() {
     }).join('');
 
     return `<div class="${cardCls}" id="qcard-${q.idx}">
-      <div class="question-meta">Tema ${q.topic+1}: ${topics[q.topic]} · Pregunta ${qi+1}/10</div>
+      <div class="card-header">
+        <div class="question-meta">Tema ${q.topic+1}: ${topics[q.topic]} · Pregunta ${qi+1}/10</div>
+        <button class="menu-btn" onclick="openCorrection(${q.idx})" title="Corregir respuesta">⋯</button>
+      </div>
       <div class="question-text">${qi+1}. ${q.q}</div>
       <div class="options">${opts}</div>
       <div class="explanation ${isAnswered ? 'show' : ''}" id="exp-${q.idx}">
@@ -1391,6 +1437,43 @@ function answer(idx, opt) {
       }, 600);
     }
   }
+}
+
+function openCorrection(idx) {
+  const q = questions[idx];
+  document.getElementById('correction-question-preview').textContent = q.q.length > 80 ? q.q.slice(0,80)+'…' : q.q;
+  document.getElementById('correction-opts').innerHTML = q.opts.map((o, oi) => {
+    const isCurrent = oi === q.ans;
+    return `<button class="correction-opt ${isCurrent ? 'current-correct' : ''}" onclick="applyCorrection(${idx},${oi})">
+      <span class="opt-letter">${['A','B','C','D'][oi]}.</span>
+      <span>${o}${isCurrent ? ' ✓ (actual)' : ''}</span>
+    </button>`;
+  }).join('');
+  document.getElementById('correction-overlay').classList.add('open');
+}
+
+function closeCorrection(e) {
+  if (e && e.target !== document.getElementById('correction-overlay')) return;
+  document.getElementById('correction-overlay').classList.remove('open');
+}
+
+function applyCorrection(idx, newAns) {
+  const q = questions[idx];
+  const oldAns = q.ans;
+  if (newAns === oldAns) { document.getElementById('correction-overlay').classList.remove('open'); return; }
+
+  // Recalculate score if question already answered
+  const userAns = answered[idx];
+  if (userAns !== null) {
+    const wasCorrect = userAns === oldAns;
+    const isNowCorrect = userAns === newAns;
+    if (wasCorrect && !isNowCorrect) topicScores[q.topic].correct--;
+    if (!wasCorrect && isNowCorrect) topicScores[q.topic].correct++;
+  }
+
+  questions[idx].ans = newAns;
+  document.getElementById('correction-overlay').classList.remove('open');
+  renderQuiz();
 }
 
 function switchTopic(t) {
